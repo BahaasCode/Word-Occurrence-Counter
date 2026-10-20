@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 
 typedef struct entry {
@@ -42,4 +44,45 @@ static void traverse_directory(const char *dir_path) {
         return;
     }
 
-}
+
+    //everything below here is crazy
+
+    size_t dir_path_len = strlen(dir_path);
+    int need_slash = (dir_path_len > 0 && dir_path[dir_path_len - 1] != '/');
+    struct dirent *entry;
+
+    while((entry = readdir(dir)) != NULL) {
+        const char *name = entry->d_name;
+        if(name[0] == '.') {
+            continue; // skip hidden files and directories
+        }
+        size_t name_len = strlen(name);
+
+
+        char *full_path = xmalloc(dir_path_len + name_len + 2); //might wanna double check if its malloc or xmalloc
+
+        memcpy(full_path, dir_path, dir_path_len);
+        if(need_slash) {
+            full_path[dir_path_len] = '/';
+        }
+        memcpy(full_path + dir_path_len + need_slash, name, name_len);
+
+        struct stat st;
+        //check if the file is a directory or a regular file
+        if(stat(full_path, &st) == 0) {
+            //if the file is a directory, recursively traverse it
+            if (stat(full_path, &st) == 0) {
+                if(S_ISDIR(st.st_mode)) {
+                    traverse_directory(full_path);
+                } else if(S_ISREG(st.st_mode) && has_suffix(name)) {
+                    // process through the file, retiteration of the process_file function
+                    process_file(full_path);
+                } else {
+                    fprintf(stderr, "words: cannot stat %s: %s\n", full_path, strerror(errno));
+                }
+                free(full_path);
+            }   
+            closedir(dir);
+        }
+    }
+} //i need to make sure the brackets are correct
