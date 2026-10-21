@@ -291,8 +291,8 @@ static void process_path(const char *path)
 
 //------------------------------- print results ---------------------------------
 
-static int compare_entries (const void *a, const void *b)
-{
+static int compare_entries (const void *a, const void *b) {
+    
     const entry *entry_a = *(const entry **)a;
     const entry *entry_b = *(const entry **)b;
 
@@ -303,8 +303,7 @@ static int compare_entries (const void *a, const void *b)
     return strcmp(entry_a->word, entry_b->word);
 }
 
-static void write_all( const char *buf, size_t count)
-{
+static void write_all( const char *buf, size_t count) {
     
 
     while (len > 0) {
@@ -321,8 +320,8 @@ static void write_all( const char *buf, size_t count)
     }
 }
 
-static void print_results(void)
-{
+static void print_results (void) {
+
     if (tables_used == 0) {
         return;
     }
