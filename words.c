@@ -289,6 +289,73 @@ static void process_path(const char *path)
     }
 }
 
+//------------------------------- print results ---------------------------------
+
+static int compare_entries (const void *a, const void *b)
+{
+    const entry *entry_a = *(const entry **)a;
+    const entry *entry_b = *(const entry **)b;
+
+    if (entry_a->count != entry_b->count) {
+        return (entry_b->count - entry_a->count);
+    }
+
+    return strcmp(entry_a->word, entry_b->word);
+}
+
+static void write_all( const char *buf, size_t count)
+{
+    
+
+    while (len > 0) {
+
+        ssize_t w = write(STDOUT_FILENO, buf, len);
+
+        if (w < 0) {
+            if (errno == EINTR)
+                continue;
+            exit(EXIT_FAILURE);
+        }
+        buf += w;
+        len -= (size_t)w;
+    }
+}
+
+static void print_results(void)
+{
+    if (tables_used == 0) {
+        return;
+    }
+
+    entry **entries = xmalloc(tables_used * sizeof(entry *));
+    size_t index = 0;
+
+    for (size_t i = 0; i < table_size; i++) {
+        entry *current = table[i];
+
+        while (current != NULL) {
+            entries[index++] = current;
+            current = current->next;
+        }
+    }
+
+    qsort(entries, tables_used, sizeof(entry *), compare_entries);
+
+    for (size_t i = 0; i < tables_used; i++) {
+        char buffer[256];
+        int len = snprintf(buffer, sizeof(buffer), "%s %zu\n",
+                           entries[i]->word, entries[i]->count);
+        write_all(buffer, (size_t)len);
+    }
+
+    free(entries);
+}
+
+
+
+
+//------------------------------- main function ---------------------------------
+
 int main(int argc, char *argv[])
 {
     int files_found = 0;
@@ -327,6 +394,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: words [-s suffix] file_or_directory...\n");
         return EXIT_FAILURE;
     }
-
+    print_results();
     return EXIT_SUCCESS;
 }
