@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 {
     int files_found = 0;
 
-    // First pass: find the suffix option
+    //find the suffix option
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-s") == 0) {
             if (i + 1 >= argc) {
@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Second pass: process files and directories
+    //process files and directories
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-s") == 0) {
             i++;
