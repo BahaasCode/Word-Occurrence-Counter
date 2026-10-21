@@ -270,3 +270,63 @@ static void traverse_directory(const char *dir_path) {
     }
         closedir(dir);           
 }
+
+static void process_path(const char *path)
+{
+    struct stat st;
+
+    if (stat(path, &st) == -1) {
+        fprintf(stderr, "words: cannot stat %s: %s\n",
+                path, strerror(errno));
+        return;
+    }
+
+    if (S_ISDIR(st.st_mode)) {
+        traverse_directory(path);
+    }
+    else if (S_ISREG(st.st_mode)) {
+        process_file(path);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    int files_found = 0;
+
+    // First pass: find the suffix option
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-s") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "words: missing suffix\n");
+                return EXIT_FAILURE;
+            }
+
+            suffix = argv[++i];
+        }
+        else if (strncmp(argv[i], "-s", 2) == 0) {
+            suffix = argv[i] + 2;
+        }
+    }
+
+    // Second pass: process files and directories
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-s") == 0) {
+            i++;
+            continue;
+        }
+
+        if (strncmp(argv[i], "-s", 2) == 0) {
+            continue;
+        }
+
+        process_path(argv[i]);
+        files_found++;
+    }
+
+    if (!files_found) {
+        fprintf(stderr, "Usage: words [-s suffix] file_or_directory...\n");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}

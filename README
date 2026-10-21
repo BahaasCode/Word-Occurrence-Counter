@@ -3,3 +3,30 @@ CS 214 Project 2 - Word occurrence count
 Authors:
 Vishesh Patel - vp762
 Bahaa Elattar - bae58
+
+The words program we have designed is supposed to count how many times a certain word occurs among the given files. We will be using a hash table to store each unique word and its number. If there is a repetition of a certain word, its previous number will be incremented without having to create another entry. The numbers will be global to all files.
+
+The file reader utilizes open(), read(), and close(). It reads the file contents in blocks of 4096 bytes. The word buffer was expanded if needed to ensure that a word is not restricted by the length of one read call. The parser treats uppercase and lowercase words as distinct from each other. Also, it handles apostrophe and hyphen cases according to the assignment requirements.
+
+With directories, the program searches the relevant files and looks into their sub-directories. It ignores names that start with a dot (.). By default, it searches for the .txt files but has been enhanced to search for a suffix with the option of using -s .md or -s.md. Directly entered filenames on the command line are processed regardless of the suffix.
+
+Problems We Ran Into and Fixes
+
+Our first problem was that we had closedir() in the loop where we read directory entries; this would close the directory before all operations were done on it. We took it out of the loop. The other problem was that we found a duplicated stat() call, so we removed the duplicate call. Our second problem was that the file paths formed by using memcpy() do not have null termination. We put a '\0' at the end of every generated path. We modified the code such that if there is a normal file with a mismatching suffix, then it is not considered an error in stat() but just skipped over.
+
+The modification of the word parser was needed because of the test of the punctuation mark. In particular, double hyphens have to be used as separators, but hyphen and apostrophe can never unite words. There is also a need to check if there is a hyphen as the future separator of the words.
+
+The text provided in the assignment has also used curly apostrophe (’) as opposed to straight apostrophe ('). This particular character was being omitted in our initial parser program, so we have implemented processing of UTF-8 byte representation of this character. Initially, it was being displayed incorrectly in the Windows console, but setting the code page to UTF-8 fixed the problem.
+
+As part of checking the long words, we faced a problem while using an earlier executable/test. After recreating the test file and recompiling, we still faced some problems regarding WinMain while running the test due to lack of saving the updated source that included main(). Saving the file fixed the problem.
+
+Testing Strategy and Results So Far
+
+We tested simple repeated words, capitalization, hyphen, apostrophe, and digit separation of words. For instance, we performed tests using "spam eggs bacon spam", "Hello hello Hello", "foo-bar", "foo--bar", "foo-'bar", and "a2z" to make sure that the right words have been detected and counted.
+
+We used the sample sentence provided in the assignment with a curly apostrophe in "’oo". After modifying the parser and terminal encoding, the number of words is the same as in the example. Additionally, we tested a word consisting of 10,000 repeated letters and it was considered as one word occurrence.
+
+To test directory traversal, a folder with a text file and a subfolder with a text file were used. It gave us the following result – apple 3, banana 2, and orange 1. There was an addition of .md file, .txt hidden file, and hidden folder with a text file to ensure that the default .txt traversal ignored all those. The result remained unchanged.
+
+In case of arguments, there were a directory with the default suffix, -s .md and -s.md, directly named .md file, and named files that were tested. Moreover, there was a test of putting -s right after the directory argument.
+
