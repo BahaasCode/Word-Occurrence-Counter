@@ -8,7 +8,7 @@ Design and Overview
 
 The words program we have designed is supposed to count how many times a certain word occurs among the given files. We will be using a hash table to store each unique word and its number. If there is a repetition of a certain word, its previous number will be incremented without having to create another entry. The numbers will be global to all files.
 
-Storage is a chained hash table mapping word to count. Words are copied to heap memory, so there is no maximum word length or file size. The file reader utilizes open(), read(), and close(). It reads the file contents in blocks of 4096 bytes. The word buffer was expanded if needed to ensure that a word is not restricted by the length of one read call. The parser treats uppercase and lowercase words as distinct from each other. Also, it handles apostrophe and hyphen cases according to the assignment requirements.
+Storage is a chained hash table mapping word to count. Words are copied to dynamically allocated heap memory, allowing the program to handle words and files without a fixed, predetermined size limit. The file reader utilizes open(), read(), and close(). It reads the file contents in blocks of 4096 bytes. The word buffer was expanded if needed to ensure that a word is not restricted by the length of one read call. The parser treats uppercase and lowercase words as distinct from each other. Also, it handles apostrophe and hyphen cases according to the assignment requirements.
 
 With directories, the program searches the relevant files and looks into their sub-directories. It ignores names that start with a dot (.). By default, it searches for the .txt files but has been enhanced to search for a suffix with the option of using -s .md or -s.md. Directly entered filenames on the command line are processed regardless of the suffix.
 
@@ -22,7 +22,13 @@ The text provided in the assignment has also used curly apostrophe (’) as oppo
 
 As part of checking the long words, we faced a problem while using an earlier executable/test. After recreating the test file and recompiling, we still faced some problems regarding WinMain while running the test due to lack of saving the updated source that included main(). Saving the file fixed the problem.
 
-Testing Strategy and Results So Far
+We discovered an anomaly within the print_results() function, where the same 256 bytes were allocated for storing the word and the count associated with it. In order to mitigate this problem, we modified the code such that the word itself was written directly via the write() system call.
+
+We have also updated compare_entries() to compare the count of the words directly rather than subtracting them to avoid issues with unsigned integers. The program has been changed to sort words based on decreasing count, and if there is a tie, it will do lexicographic sorting through strcmp().
+
+free_table was added to release the memory used by the hash table. It releases each word stored, its entry, and eventually the entire hash table.
+
+Testing Strategy and Results
 
 We tested simple repeated words, capitalization, hyphen, apostrophe, and digit separation of words. For instance, we performed tests using "spam eggs bacon spam", "Hello hello Hello", "foo-bar", "foo--bar", "foo-'bar", and "a2z" to make sure that the right words have been detected and counted.
 
@@ -32,3 +38,12 @@ To test directory traversal, a folder with a text file and a subfolder with a te
 
 In case of arguments, there were a directory with the default suffix, -s .md and -s.md, directly named .md file, and named files that were tested. Moreover, there was a test of putting -s right after the directory argument.
 
+Testing was done on word counts for repeated words in more than one file and sorting by decreasing frequency. Testing was also done on words that had the same number of occurrences to check if alphabetizing was implemented.
+
+Tested words of size 500 and 4110 characters. The word having a size of 4110 characters exceeded the limit of 4096 bytes for read but was considered as one word only. Tests were successful.
+
+Tested empty files and non-existent files. No results were obtained from the empty files, while for non-existent files there was just an error message without crashing.
+
+Tested recursive directory search with files located in different sub-directories. Also tested both versions of suffix flag, -s.csv and -s .csv.
+
+We used Valgrind with --leak-check=full option. The execution under test had 362 allocs and 362 frees with 0 bytes left and no memory errors.
