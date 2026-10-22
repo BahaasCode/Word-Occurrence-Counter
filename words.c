@@ -296,8 +296,12 @@ static int compare_entries (const void *a, const void *b) {
     const entry *entry_a = *(const entry **)a;
     const entry *entry_b = *(const entry **)b;
 
-    if (entry_a->count != entry_b->count) {
-        return (entry_b->count - entry_a->count);
+    if (entry_a->count < entry_b->count) {
+        return 1;
+    }
+
+    if (entry_a->count > entry_b->count) {
+        return -1;
     }
 
     return strcmp(entry_a->word, entry_b->word);
@@ -341,16 +345,39 @@ static void print_results (void) {
     qsort(entries, tables_used, sizeof(entry *), compare_entries);
 
     for (size_t i = 0; i < tables_used; i++) {
-        char buffer[256];
-        int len = snprintf(buffer, sizeof(buffer), "%s %zu\n",
-                           entries[i]->word, entries[i]->count);
-        write_all(buffer, (size_t)len);
+    write_all(entries[i]->word, strlen(entries[i]->word));
+    write_all(" ", 1);
+
+    char buffer[32];
+    int len = snprintf(buffer, sizeof(buffer), "%zu\n",
+                       entries[i]->count);
+
+    write_all(buffer, (size_t)len);
     }
 
     free(entries);
 }
 
+static void free_table(void)
+{
+    for (size_t i = 0; i < table_size; i++) {
+        entry *current = table[i];
 
+        while (current != NULL) {
+            entry *next = current->next;
+
+            free(current->word);
+            free(current);
+
+            current = next;
+        }
+    }
+
+    free(table);
+    table = NULL;
+    table_size = 0;
+    tables_used = 0;
+}
 
 
 //------------------------------- main function ---------------------------------
@@ -394,5 +421,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     print_results();
+    free_table();
     return EXIT_SUCCESS;
 }
