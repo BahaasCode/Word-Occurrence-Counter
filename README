@@ -4,9 +4,11 @@ Authors:
 Vishesh Patel - vp762
 Bahaa Elattar - bae58
 
+Design and Overview
+
 The words program we have designed is supposed to count how many times a certain word occurs among the given files. We will be using a hash table to store each unique word and its number. If there is a repetition of a certain word, its previous number will be incremented without having to create another entry. The numbers will be global to all files.
 
-The file reader utilizes open(), read(), and close(). It reads the file contents in blocks of 4096 bytes. The word buffer was expanded if needed to ensure that a word is not restricted by the length of one read call. The parser treats uppercase and lowercase words as distinct from each other. Also, it handles apostrophe and hyphen cases according to the assignment requirements.
+Storage is a chained hash table mapping word to count. Words are copied to heap memory, so there is no maximum word length or file size. The file reader utilizes open(), read(), and close(). It reads the file contents in blocks of 4096 bytes. The word buffer was expanded if needed to ensure that a word is not restricted by the length of one read call. The parser treats uppercase and lowercase words as distinct from each other. Also, it handles apostrophe and hyphen cases according to the assignment requirements.
 
 With directories, the program searches the relevant files and looks into their sub-directories. It ignores names that start with a dot (.). By default, it searches for the .txt files but has been enhanced to search for a suffix with the option of using -s .md or -s.md. Directly entered filenames on the command line are processed regardless of the suffix.
 
