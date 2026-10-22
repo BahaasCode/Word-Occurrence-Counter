@@ -306,9 +306,9 @@ static int compare_entries (const void *a, const void *b) {
 static void write_all( const char *buf, size_t count) {
     
 
-    while (len > 0) {
+    while (count > 0) {
 
-        ssize_t w = write(STDOUT_FILENO, buf, len);
+        ssize_t w = write(STDOUT_FILENO, buf, count);
 
         if (w < 0) {
             if (errno == EINTR)
@@ -316,7 +316,7 @@ static void write_all( const char *buf, size_t count) {
             exit(EXIT_FAILURE);
         }
         buf += w;
-        len -= (size_t)w;
+        count -= (size_t)w;
     }
 }
 
